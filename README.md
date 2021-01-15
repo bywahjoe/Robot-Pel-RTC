@@ -2,5 +2,5 @@
 Arduino ESP32 Serial Communication
 
 # Depedencies
-  RTC Lib by rinkydinkelectronics
-  PubSubCLient Arduino
+  1. RTC Lib by rinkydinkelectronics
+  2. PubSubCLient Arduino
