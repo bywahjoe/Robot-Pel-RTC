@@ -12,9 +12,9 @@ bool isRepeat = false;
 
 //Setting Robot Operation-----//
 String jam[] = {
-  "16:25",
-  "16:27",
-  "18:01",
+  "12:36",
+  "12:39",
+  "12:43",
   "19:00",
 
 };
