@@ -1,6 +1,13 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 
+//TELEGRAM
+  #include "CTBot.h"  
+  #define chatID 1308157974
+  CTBot myBot;
+  String token = "1399258400:AAGEOPpu5IOG8UE4Wq8ZaHeJ22T_g7HGOwM";
+//--------
+
 #define triggerPin  18
 #define echoPin     19
 
@@ -32,6 +39,7 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 char msg[300];
 
+void kirim(String pesan);
 long jarakAir();
 
 void setup_wifi() {
@@ -48,7 +56,8 @@ void setup_wifi() {
     delay(500);
     Serial.print(".");
   }
-
+  myBot.setTelegramToken(token); //TOKEN SETT
+  kirim("START TELEGRAM");
   randomSeed(micros());
 
   Serial.println("");
@@ -62,13 +71,13 @@ void callback(char* topic, byte* payload, long length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.println("] ");
-  
+
   String message = "";
-  
+
   for (int i = 0; i < length; i++) {
     message += (char)payload[i];
   }
-  
+
   Serial.print("Payload");
   Serial.println(message);
   //
@@ -115,9 +124,11 @@ void loop() {
     if (recv == 'n') {
       //Serial.println("OKN");
       indikator = 1;
+      kirim("ROBOT ON");
     } else if (recv == 'f') {
       //Serial.println("OKF");
       indikator = 0;
+      kirim("ROBOT OFF");
     } else {}
 
     Serial2.end();
@@ -145,6 +156,7 @@ void readSensor() {
   //sensor calculation
   int level = jarakAir();
 
+  //int level = 10;
   String kirim;
   //{"eventName":"amd2020","status":"<none>","level":"<levelair>","v1":"<macAddressOfDevice>"}
   kirim += "{\"eventName\":\"amd2020\",\"status\":\"<none>\",\"level\":\"";
@@ -160,22 +172,25 @@ void readSensor() {
 }
 long jarakAir() {
   long duration, jarak;
-  
+
   digitalWrite(triggerPin, LOW);
   delayMicroseconds(2);
   digitalWrite(triggerPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(triggerPin, LOW);
-  
+
   duration = pulseIn(echoPin, HIGH);
-  
+
   jarak = (duration / 2) / 29.1;
   jarak = setKosong - jarak;
   jarak = constrain(jarak, 1, 30);
-  
+
   //  Serial.println("jarak :");
   //  Serial.print(jarak);
   //  Serial.println(" cm");
-  
+
   return jarak;
+}
+void kirim(String pesan) {
+  myBot.sendMessage(chatID, pesan);
 }
