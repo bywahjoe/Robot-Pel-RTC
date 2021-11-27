@@ -1,11 +1,16 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+unsigned long nows, before;
+
 //TELEGRAM
-  #include "CTBot.h"  
-  #define chatID 1308157974
-  CTBot myBot;
-  String token = "1399258400:AAGEOPpu5IOG8UE4Wq8ZaHeJ22T_g7HGOwM";
+#include "CTBot.h"
+#define chatID 1308157974
+CTBot myBot;
+String token = "1399258400:AAGEOPpu5IOG8UE4Wq8ZaHeJ22T_g7HGOwM";
 //--------
 
 #define triggerPin  18
@@ -108,15 +113,27 @@ void setup() {
   Serial.begin(9600);
   Serial2.begin(9600);
 
+  //LCD
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting WiFi.");
+
+  //Ultra
   pinMode(triggerPin, OUTPUT);
   pinMode(echoPin, INPUT);
+
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+
+  //Timer LCD
+  nows = millis();
+  before = nows;
 }
 
 void loop() {
-
   if (Serial2.available()) {
 
     char recv = Serial2.read();
@@ -124,11 +141,11 @@ void loop() {
     if (recv == 'n') {
       //Serial.println("OKN");
       indikator = 1;
-      kirim("ROBOT ON");
+      kirim("F-CLEAN ON");
     } else if (recv == 'f') {
       //Serial.println("OKF");
       indikator = 0;
-      kirim("ROBOT OFF");
+      kirim("F-CLEAN OFF");
     } else {}
 
     Serial2.end();
@@ -148,6 +165,14 @@ void loop() {
     readSensor();
     lastPublish = millis();
   }
+
+  //LCD
+  nows = millis();
+  if (nows - before >= 2000L) {
+    viewDisplay();
+    before = nows;
+  }
+
 }
 void publish_message(const char* message) {
   client.publish(EVENT_TOPIC, message);
@@ -193,4 +218,20 @@ long jarakAir() {
 }
 void kirim(String pesan) {
   myBot.sendMessage(chatID, pesan);
+}
+void viewDisplay() {
+  String robotStatus = "OFF";
+  int persentase=(jarakAir()*100/setKosong);
+ 
+  if (indikator)robotStatus = "ON";
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("F-CLEAN  : ");
+  lcd.print(robotStatus);
+  lcd.setCursor(0, 1);
+  lcd.print("WATER LVL: ");
+  lcd.print(persentase);
+  lcd.print("%");
+//lcd.print(jarakAir());
 }
